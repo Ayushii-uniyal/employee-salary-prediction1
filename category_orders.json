@@ -1,0 +1,1 @@
+{"experience_order": ["EN", "MI", "SE", "EX"], "company_size_order": ["M", "L"], "nominal_features": ["job_title", "company_location", "employment_type"], "binary_features": ["remote_ratio"]}

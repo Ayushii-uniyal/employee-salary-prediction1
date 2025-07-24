@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Salary Predictor</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+
+        #loadingSpinner { display: none; }
+        #predictionResult { display: none; }
+        body{
+            padding: 0px;
+            margin-top: 10px;
+            background-image: url("/templates/bg1.jpg");
+            background-size: cover;
+        }
+
+        #predictionForm{
+            background-color: #CAE8BD;
+            padding: 10px;
+            border-radius: 30px;
+        }
+        .head{
+            padding-top: 20px;
+            border-radius: 30px;
+            display: flex;
+            justify-content: center;
+        }
+        #cont{
+            background-color: #B0DB9C;
+            border-radius: 30px;
+            padding-bottom: 20px;
+        }
+        .grid{
+            display: flex;
+            flex-direction: row;
+            justify-content: space-between;
+        }
+        #gridComp{
+            width: 500px;
+        }
+        h1{
+            font-weight: bold;
+        }
+        .disclaimer{
+            background-color: white;
+            opacity: 0.85;
+            color: black;
+            text-align: center;
+            font-size: 16px;
+        }
+    </style>
+</head>
+<body>
+    <div id = "cont" class="container mt-5">
+        <div class = "head">
+            <h1 class="mb-4" id = "head">Employee Salary Predictor 💵</h1>
+        </div>
+        <form id="predictionForm" class="mb-4">
+            <!-- Grid for both input -->
+            <div class = "grid">
+                <!-- Experience Level -->
+                <div class="mb-3" id = "gridComp">
+                    <label class="form-label">Experience Level</label>
+                    <select class="form-select" name="experience_level" required>
+                        <option value="EN">Entry Level</option>
+                        <option value="MI">Mid Level</option>
+                        <option value="SE">Senior</option>
+                        <option value="EX">Executive</option>
+                    </select>
+                </div>
+
+                <!-- Employment Type -->
+                <div class="mb-3" id = "gridComp">
+                    <label class="form-label">Employment Type</label>
+                    <select class="form-select" name="employment_type" required>
+                        <option value="FT">Full-time</option>
+                        <option value="PT">Part-time/Contract</option>
+                    </select>
+                </div>
+            </div>
+            
+
+            <!-- Job Title -->
+            <div class="mb-3">
+                <label class="form-label">Job Title</label>
+                <input type="text" class="form-control" name="job_title" required>
+            </div>
+
+            <!-- Company Location -->
+            <div class="mb-3">
+                <label class="form-label">Company Location</label>
+                <select class="form-select" name="company_location" required>
+                    <option value="United States">United States</option>
+                    <option value="Canada">Canada</option>
+                    <option value="United Kingdom">United Kingdom</option>
+                    <option value="Europe (Other)">Europe (Other)</option>
+                    <option value="Asia Pacific (Other)">Asia Pacific (Other)</option>
+                    <option value="Latin America">Latin America</option>
+                    <option value="Middle East & Africa">Middle East & Africa</option>
+                </select>
+            </div>
+
+
+            <div class = "grid">
+                <!-- Remote Ratio -->
+                <div class="mb-3" id = "gridComp">
+                    <label class="form-label">Remote Ratio (0-100)</label>
+                    <input type="number" class="form-control" name="remote_ratio" min="0" max="100" required>
+                </div>
+
+                <!-- Company Size -->
+                <div class="mb-3" id = "gridComp">
+                    <label class="form-label">Company Size</label>
+                    <select class="form-select" name="company_size" required>
+                        <option value="M">Small-Medium</option>
+                        <option value="L">Large</option>
+                    </select>
+                </div>
+            </div>
+            
+
+
+            <button type="submit" class="btn btn-primary">
+                <span id="submitText">Predict Salary</span>
+                <span id="loadingSpinner" class="spinner-border spinner-border-sm"></span>
+            </button>
+        </form>
+
+        <!-- Results -->
+        <div id="predictionResult" class="alert alert-success" style="display:none;">
+            <h4>Prediction Result</h4>
+            <p><strong>Estimated Salary:</strong> <span id="salaryPrediction"></span></p>
+            <p><strong>Likely Range:</strong> <span id="salaryRange"></span></p>
+            
+            <!-- Add these new elements -->
+            <div id="titleInfo" class="mt-2 small" style="display:none">
+                <span id="recognizedTitle"></span>
+                <span id="confidenceBadge" class="badge ms-2"></span>
+            </div>
+        </div>
+
+        <div id="errorAlert" class="alert alert-danger" style="display:none;"></div>
+    </div>
+
+    <footer class="mt-5 text-muted small">
+        <p class = "disclaimer">
+            
+                Disclaimer: This is a machine learning demonstration. Salary predictions 
+                are based on limited data and may not reflect actual compensation. 
+                Actual salaries may vary based on factors not included in this model. 
+            
+        </p>
+    </footer>
+
+    <script>
+        
+
+        document.getElementById('predictionForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            // UI States
+            document.getElementById('errorAlert').style.display = 'none';
+            document.getElementById('predictionResult').style.display = 'none';
+            document.getElementById('submitText').style.display = 'none';
+            document.getElementById('loadingSpinner').style.display = 'inline-block';
+
+            try {
+                const formData = new FormData(e.target);
+                const response = await fetch('/predict', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const data = await response.json();
+                
+                if (data.status === 'success') {
+                    document.getElementById('salaryPrediction').textContent = data.prediction;
+                    document.getElementById('salaryRange').textContent = data.range;
+                    document.getElementById('predictionResult').style.display = 'block';
+                } else {
+                    throw new Error(data.message);
+                }
+            } catch (error) {
+                document.getElementById('errorAlert').textContent = error.message;
+                document.getElementById('errorAlert').style.display = 'block';
+            } finally {
+                document.getElementById('submitText').style.display = 'inline-block';
+                document.getElementById('loadingSpinner').style.display = 'none';
+            }
+        });
+                
+    </script>
+</body>
+</html>
